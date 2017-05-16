@@ -2,7 +2,19 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const Epona = require("eponajs");
 let epona = Epona.new({ concurrent: 3, rateLimit: 1000 });
-epona.on("bbs.tianya.cn/post-free-5705844-1", {
+epona.on("bbs.tianya.cn/list", {
+    urls: '.td-title a *::href ',
+    nextid: '.short-pages-2 a:nth-last-of-type(1)::href',
+})
+    .then(function (ret) {
+    return {
+        urls: ret.urls.map(x => { return { url: "http://bbs.tianya.cn" + x, default: { id: x } }; }),
+        next: {
+            url: `http://bbs.tianya.cn` + ret.nextid
+        }
+    };
+});
+epona.on("bbs.tianya.cn/post-", {
     title: '.s_title',
     host: '#post_head .atl-info a:nth-of-type(1)::text()',
     published_at: "#post_head .atl-info span:nth-of-type(2)",
@@ -11,7 +23,10 @@ epona.on("bbs.tianya.cn/post-free-5705844-1", {
     content: '.host-item .bbs-content|trim'
 })
     .then(function (ret) {
-    console.log(ret);
+    if (ret.published_at !== null) {
+        let time = ret.published_at.match(/\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}/g).toString();
+        ret.published_at = new Date(Date.parse(time));
+    }
     return ret;
 });
 exports.default = epona;

@@ -10,36 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const _base_1 = require("./_base");
 const lodash_1 = require("lodash");
-const post_1 = require("./crawlers/post");
 let http = require('http');
 const initStatus = {
-    '36kr': { next: { default: { page: 1 }, url: 'http://36kr.com/api/info-flow/main_site/posts?column_id=&b_id=&per_page=20' } },
-    'ikanchai': {
-        next: { default: { page: 1 }, url: 'http://app.ikanchai.com/roll.php?do=more&sectionid=255&status=1&sort=0&pagesize=5&page=1' }
-    }, 'cyzone': {
-        next: { default: { page: 1 }, url: 'http://api.cyzone.cn/index.php?m=content&c=index&a=init&tpl=index_page&page=1' }
-    }, 'huxiu': {
-        next: { default: { page: 2 }, url: 'https://www.huxiu.com/v2_action/article_list?page=2' }
-    }, 'geekpark': {
-        next: { default: { page: 0 }, url: 'http://www.geekpark.net/articles_list?page=0' }
-    }, 'leiphone': {
-        next: { default: { page: 1 }, url: 'http://www.leiphone.com/page/1' }
-    }, 'tmtpost': {
-        next: { default: { page: 0 }, url: 'http://www.tmtpost.com/ajax/common/get?url=/v1/lists/home&data=offset=0&limit=15&post_fields=tags' }
-    },
-    'techxue': {
-        next: { default: { page: 1 }, url: 'index' }
-    },
-    'qianzhan': {
-        next: [
-            { default: { page: 1 }, url: 'http://t.qianzhan.com/fengkou/p-1.html' },
-            { default: { page: 1 }, url: 'http://t.qianzhan.com/p-1.html' },
-            { default: { page: 1 }, url: 'http://t.qianzhan.com/daka/p-1.html' }
-        ]
-    },
-    'pingwest': {
-        next: { default: { page: 0 }, url: 'index' }
-    }
+    'post': { next: { default: { page: 1 }, url: 'http://bbs.tianya.cn/list-funinfo-1.shtml' } }
 };
 let util = require('util');
 function log(x) {
@@ -73,36 +46,32 @@ function bulk(bulkBody) {
     });
 }
 function getIndecies(crawler, indecies) {
-    let urls = Array.isArray(indecies) ? lodash_1.flatten(indecies.map(x => x.next)) : indecies.next;
+    let urls = indecies.next;
     return crawler.queue(urls || []);
 }
-function getArticles(crawler, index) {
+function getPosts(crawler, index) {
     let urls = Array.isArray(index) ? lodash_1.flatten(index.map(x => x.urls)) : index.urls;
     return crawler.queue(urls);
 }
 function saveStatus(site, next) {
-    return _base_1.redis.hsetAsync("owl.articleStatus", site, JSON.stringify(next));
+    return _base_1.redis.hsetAsync("owl.postsStatus", site, JSON.stringify(next));
 }
 function loadStatus(site, increment) {
     return __awaiter(this, void 0, void 0, function* () {
-        let status = yield _base_1.redis.hgetAsync("owl.articleStatus", site);
+        let status = yield _base_1.redis.hgetAsync("tya.postsStatus", site);
         return status && !increment ? JSON.parse(status) : initStatus[site];
     });
 }
-function saveArticles(site, articles) {
+function savePosts(site, posts) {
     let bulkBody = [];
-    articles.map(article => {
-        if (!article || !article.title) {
+    posts.map(post => {
+        if (!post || !post.title) {
             return;
         }
-        let a = lodash_1.pick(article, ["title", "content", "published_at", "desc", "pics", "url", "type", "keywords", "supports_num", "collections_num", "comments_num", "views_num", "author_id"]);
-        a.index_name = 'tech_news';
-        a.type_name = `tech_${site}_articles`;
-        a.id = article.id;
+        let a = lodash_1.pick(post, ["title", "host", "published_at", "clicks_num", "replays_num", "url", "content"]);
         bulkBody.push(a);
     });
     console.log(bulkBody);
-    return bulk(bulkBody);
 }
 function isNext(index) {
     if (Array.isArray(index)) {
@@ -127,8 +96,8 @@ function crawl(site, increment = false) {
                         return crawlCompleted(site);
                     }
                     let status = yield saveStatus(site, index);
-                    let articles = yield getArticles(crawler, index);
-                    let saved = yield saveArticles(site, articles);
+                    let posts = yield getPosts(crawler, index);
+                    let saved = yield savePosts(site, posts);
                     candidate = index;
                     setImmediate(_crawl, crawler, index);
                 }
@@ -143,10 +112,7 @@ function crawl(site, increment = false) {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        crawl(process.argv[2] || 'plate', process.argv[3] == "inc");
-        yield post_1.default.queue([
-            'http://bbs.tianya.cn/post-free-5705844-1.shtml'
-        ]);
+        crawl(process.argv[2] || 'post', process.argv[3] == "inc");
     });
 }
 run();
