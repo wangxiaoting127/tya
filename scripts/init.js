@@ -1,0 +1,1 @@
+import { redis, config } from "../_base"

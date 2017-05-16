@@ -1,0 +1,23 @@
+{
+  "name": "owl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bluebird": "^3.5.0",
+    "cheerio": "^0.22.0",
+    "elasticsearch": "^13.0.0-rc1",
+    "expand-range": "^1.8.2",
+    "keras-js": "^0.1.0",
+    "lodash": "^4.17.4",
+    "moment": "^2.18.1",
+    "redis": "^2.7.1",
+    "request": "^2.81.0",
+    "typhoeus": "^1.2.5"
+  }
+}
