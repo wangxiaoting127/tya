@@ -1,11 +1,18 @@
 import { redis, es, config } from "./_base"
 import { split, pick, flatten } from "lodash"
 import { heartbeat } from "./src/heartbeat"
+import a from './tianya/post'
 let http = require('http')
-
+let b=a.a();
 const initStatus = {
-  'post': { next: {default: { page: 1 },url:'http://bbs.tianya.cn/list-funinfo-1.shtml'} }
+  // 'post': { next: {default: { page: 1 },url:'http://bbs.tianya.cn/list-funinfo-1.shtml'} },
+  'post':  {next:b.urls.map(x=>{return {  url: x }})  
 }
+
+   ,'plate': { next: {default: { page: 1 },url:'http://focus.tianya.cn/thread/index.shtml'} },
+}
+
+
 let util = require('util')
 function log(x) {
   console.log(util.inspect(x, { showHidden: true, depth: null }))
@@ -99,6 +106,7 @@ function crawlCompleted(site) {
 async function crawl(site, increment = false) {
   let candidate = await loadStatus(site, increment)
   let crawler = require("./crawlers/" + site).default
+  let inits
   let _crawl = async function (crawler, candidate) {
     try {
       let index = await getIndecies(crawler, candidate)
@@ -119,6 +127,7 @@ async function crawl(site, increment = false) {
   _crawl(crawler, candidate)
 }
 async function run() {
+  if(process.argv[2]=='plate'){process.argv[3] == "inc"}
    crawl(process.argv[2] || 'post', process.argv[3] == "inc")
   // await plate.queue([
   //   'http://focus.tianya.cn/thread/index.shtml'

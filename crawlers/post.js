@@ -1,16 +1,18 @@
 import * as Epona from "eponajs"
 import { save } from "../src/utils"
 import { es, config } from "../_base"
-
+const moment = require('moment')
+moment.locale('zh-cn')
 
 let epona = Epona.new({ concurrent: 3,rateLimit:1000})
-// epona.on("bbs.tianya.cn/post-free-5705844-1", {
-//   urls: '#cms_Location_2 div li h3 a *::href'
-// })
-//   .then(function (ret) {
-//     console.log(ret)
-//     return ret
-//   })
+epona.queue("http://focus.tianya.cn/thread/index.shtml");
+epona.on("http://focus.tianya.cn/thread/index.shtml", {
+  urls: '#cms_Location_2 div li h3 a *::href'
+})
+  .then(function (ret) {
+    console.log(ret)
+    return a
+  })
 epona.on("bbs.tianya.cn/list", {
   urls: '.td-title a *::href ',
   nextid: '.short-pages-2 a:nth-last-of-type(1)::href',
@@ -35,9 +37,9 @@ epona.on("bbs.tianya.cn/post-", {
   .then(function (ret) {
     if (ret.published_at !== null) {
       let time = ret.published_at.match(/\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}/g).toString();
-      ret.published_at = new Date(Date.parse(time));
+      ret.published_at = moment(time).add(8, 'hour').toDate()
     }
-    // console.log(ret)
+    console.log(ret)
     return ret
   })
 export default epona

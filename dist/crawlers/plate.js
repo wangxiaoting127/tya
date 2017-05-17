@@ -13,7 +13,10 @@ epona.on('http://focus.tianya.cn/thread/index.shtml', {
 })
     .then(function (ret) {
     console.log(ret);
-    return epona.queue(ret.urls.map(x => { return { url: x.url, default: { rank: x.rank, url: x.url } }; }));
+    return {
+        urls: ret.urls.map(x => { return { url: x.url, default: { rank: x.rank, url: x.url } }; }),
+        next: {}
+    };
 });
 epona.on('bbs.tianya.cn/list-', {
     title: 'div.text::text()|trim',

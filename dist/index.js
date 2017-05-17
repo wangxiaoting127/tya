@@ -10,9 +10,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const _base_1 = require("./_base");
 const lodash_1 = require("lodash");
+const post_1 = require("./tianya/post");
 let http = require('http');
+let b = post_1.default.a();
 const initStatus = {
-    'post': { next: { default: { page: 1 }, url: 'http://bbs.tianya.cn/list-funinfo-1.shtml' } }
+    'post': { next: b.urls.map(x => { return { url: x }; })
+    },
+    'plate': { next: { default: { page: 1 }, url: 'http://focus.tianya.cn/thread/index.shtml' } },
 };
 let util = require('util');
 function log(x) {
@@ -88,6 +92,7 @@ function crawl(site, increment = false) {
     return __awaiter(this, void 0, void 0, function* () {
         let candidate = yield loadStatus(site, increment);
         let crawler = require("./crawlers/" + site).default;
+        let inits;
         let _crawl = function (crawler, candidate) {
             return __awaiter(this, void 0, void 0, function* () {
                 try {
@@ -112,6 +117,9 @@ function crawl(site, increment = false) {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
+        if (process.argv[2] == 'plate') {
+            process.argv[3] == "inc";
+        }
         crawl(process.argv[2] || 'post', process.argv[3] == "inc");
     });
 }
