@@ -1,16 +1,15 @@
 import { redis, es, config } from "./_base"
 import { split, pick, flatten } from "lodash"
 import { heartbeat } from "./src/heartbeat"
-import a from './tianya/post'
-let http = require('http')
-let b=a.a();
-const initStatus = {
-  // 'post': { next: {default: { page: 1 },url:'http://bbs.tianya.cn/list-funinfo-1.shtml'} },
-  'post':  {next:b.urls.map(x=>{return {  url: x }})  
-}
 
-   ,'plate': { next: {default: { page: 1 },url:'http://focus.tianya.cn/thread/index.shtml'} },
-}
+let http = require('http')
+
+// const initStatus = {
+//   // 'post': { next: {default: { page: 1 },url:'http://bbs.tianya.cn/list-funinfo-1.shtml'} },
+//   'post': { next: {default: { page: 1 },url:init} },
+
+//    'plate': { next: {default: { page: 1 },url:'http://focus.tianya.cn/thread/index.shtml'} }
+// }
 
 
 let util = require('util')
@@ -58,29 +57,46 @@ async function bulk(bulkBody) {
   }
   return false
 }
-
+async function getIndex(crawler) {
+  return crawler.queue(['http://focus.tianya.cn/thread/index.shtml'])
+}
+// function getIndex(crawler, index) {
+//   let urls = Array.isArray(index) ? flatten(index.map(x => x.urls)) : index.urls
+//   return crawler.queue(urls)}
+// function saveInit(site, next) {
+//   return redis.hsetAsync("owl.postsInit"
+//     , site
+//     , JSON.stringify(next))
+// }
 function getIndecies(crawler, indecies) {
-  let urls =indecies.next
-  return crawler.queue(urls ||[])
+  let urls = Array.isArray(indecies) ? flatten(indecies.map(x => x.next)) : indecies.next
+  return crawler.queue(urls || [])
 }
 function getPosts(crawler, index) {
   let urls = Array.isArray(index) ? flatten(index.map(x => x.urls)) : index.urls
   return crawler.queue(urls)
 }
 function saveStatus(site, next) {
-  return redis.hsetAsync("owl.postsStatus"
+  return redis.hsetAsync("tya.postsStatus"
     , site
     , JSON.stringify(next))
 }
-async function loadStatus(site, increment) {
-  let status = await redis.hgetAsync("tya.postsStatus", site)
+async function loadStatus(site, increment, y) {
+  console.log('+++++=======+++++++')
+
+  let initStatus = {
+    'post': { next: y[0].urls.map(x => { return { default: { page: 1 }, url: x } }) },
+    'plate': { next: { default: { page: 1 }, url: 'http://focus.tianya.cn/thread/index.shtml' } }
+  }
+  console.log(initStatus)
+   let status = await redis.hgetAsync("tya.postsStatus", site)
   return status && !increment ? JSON.parse(status) : initStatus[site]
 }
 function savePosts(site, posts) {
   let bulkBody = []
   posts.map(post => {
     if (!post || !post.title) { return }
-    let a = pick(post, ["title", "host", "published_at", "clicks_num", "replays_num", "url","content"])
+    let a = pick(post, ["title", "host", "published_at", "clicks_num", "replays_num", "url", "content"])
     // a.index_name='tech_news'; a.type_name=`tech_${site}_posts`; a.id= post.id 
     bulkBody.push(a)
 
@@ -104,9 +120,10 @@ function crawlCompleted(site) {
   console.log(site, 'crawl completed')
 }
 async function crawl(site, increment = false) {
-  let candidate = await loadStatus(site, increment)
   let crawler = require("./crawlers/" + site).default
-  let inits
+  let init = await getIndex(crawler)
+  console.log(init)
+  let candidate = await loadStatus(site, increment, init)
   let _crawl = async function (crawler, candidate) {
     try {
       let index = await getIndecies(crawler, candidate)
@@ -127,8 +144,8 @@ async function crawl(site, increment = false) {
   _crawl(crawler, candidate)
 }
 async function run() {
-  if(process.argv[2]=='plate'){process.argv[3] == "inc"}
-   crawl(process.argv[2] || 'post', process.argv[3] == "inc")
+  if (process.argv[2] == 'plate') { process.argv[3] == "inc" }
+  crawl(process.argv[2] || 'post', process.argv[3] == "inc")
   // await plate.queue([
   //   'http://focus.tianya.cn/thread/index.shtml'
   // ])
