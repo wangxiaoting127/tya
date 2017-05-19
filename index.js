@@ -58,16 +58,8 @@ async function bulk(bulkBody) {
   return false
 }
 async function getIndex(crawler) {
-  return crawler.queue(['http://focus.tianya.cn/thread/index.shtml'])
+  return crawler.queue(['http://bbs.tianya.cn/'])
 }
-// function getIndex(crawler, index) {
-//   let urls = Array.isArray(index) ? flatten(index.map(x => x.urls)) : index.urls
-//   return crawler.queue(urls)}
-// function saveInit(site, next) {
-//   return redis.hsetAsync("owl.postsInit"
-//     , site
-//     , JSON.stringify(next))
-// }
 function getIndecies(crawler, indecies) {
   let urls = Array.isArray(indecies) ? flatten(indecies.map(x => x.next)) : indecies.next
   return crawler.queue(urls || [])
@@ -85,7 +77,7 @@ async function loadStatus(site, increment, y) {
   console.log('+++++=======+++++++')
 
   let initStatus = {
-    'post': { next: y[0].urls.map(x => { return { default: { page: 1 }, url: x } }) },
+    'post': { next: y[0].map(x => { return { default: { page: 1 }, url: x } }) },
     'plate': { next: { default: { page: 1 }, url: 'http://focus.tianya.cn/thread/index.shtml' } }
   }
   console.log(initStatus)
