@@ -5,7 +5,7 @@ import { replace } from "lodash"
 const moment = require('moment')
 moment.locale('zh-cn')
 
-let epona = Epona.new({ concurrent: 3 ,rateLimit: 1000})
+let epona = Epona.new({ concurrent: 50 })
 epona.on("http://bbs.tianya.cn/", {
   urls: '.nav_child_box a *::href'
 })

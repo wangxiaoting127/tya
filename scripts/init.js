@@ -1,5 +1,6 @@
 import { redis, config, mongo } from "../_base"
-import { includes } from "lodash"
+import { includes, split, pick, flatten } from "lodash"
+import * as Epona from "eponajs"
 redis.on("error", function (err) {
     console.log("Error " + err);
 })
@@ -17,7 +18,10 @@ function getIndecies(crawler, indecies) {
 }
 function saveList(crawler, index) {
     let urls = Array.isArray(index) ? flatten(index.map(x => x.urls)) : index.urls
-    return  redis.lpushAsync('tya.posts', `${Date.now()}`)
+
+    
+    urls.map(x => { return redis.lpushAsync('tya.posts', `${x}_${Date.now()}`) })
+
 }
 function saveStatus(site, next) {
     return redis.hsetAsync("tya.postsStatus"
@@ -26,10 +30,11 @@ function saveStatus(site, next) {
 }
 async function loadStatus(site, increment, y) {
     let initStatus = {
-        'post': { next: y[0].map(x => { return { default: { page: 1 }, url: x } }) },
+        'post': { next: y[0].urls.map(x => { return { default: { page: 1 }, url: x } }) },
         'plate': { next: { default: { page: 1 }, url: 'http://focus.tianya.cn/thread/index.shtml' } }
     }
     let status = await redis.hgetAsync("tya.postsStatus", site)
+   
     return status && !increment ? JSON.parse(status) : initStatus[site]
 }
 
@@ -45,38 +50,45 @@ function isNext(index) {
 function crawlCompleted(site) {
     console.log(site, 'crawl completed')
 }
- async function crawl(site, increment = false) {
+async function crawl(site, increment = false) {
     let crawler = require("../crawlers/" + site).default
     let init = await getIndex(crawler)
-    console.log(init)
+
     let candidate = await loadStatus(site, increment, init)
-    let _crawl = async function (crawler, candidate) {
+    async function _crawl(crawler, candidate) {
         try {
             let index = await getIndecies(crawler, candidate)
+            console.log('2+++++++++++++++++')
+            console.log(index)
+            console.log('1+++++++++++++++++')
             if (isNext(index)) {
                 return crawlCompleted(site)
             }
             let status = await saveStatus(site, index)
+            
+    
             let posts = await saveList(crawler, index)
             candidate = indexs
             setImmediate(_crawl, crawler, index)
+
         } catch (e) {
             console.log('<<<< error >>>>')
             console.log(candidate, e)
             // setImmediate(_crawl, crawler, candidate)
         }
     }
-    _crawl(crawler, candidate)
+    console.log('22222222222')
+    await _crawl(crawler, candidate)
 }
 
 async function questions() {
-   
-     crawl(process.argv[2] || 'post', process.argv[3] == "inc")
+
+    crawl(process.argv[2] || 'post', process.argv[3] == "inc")
     //   let qi = config.MAX_QUESTION_ID
     //   do {
     //     await redis.lpushAsync('zhihu.questions', `${qi}_${Date.now()}`)
     //   } while ((qi -= config.ID_PER) > config.MIN_QUESTION_ID)
-    //   console.log('zhihu questions id added')
+    console.log('postlist  added')
 }
 
 async function topics() {
@@ -106,7 +118,7 @@ async function clear(name) {
         await redis.delAsync('tya.posts.pending')
         await redis.delAsync('zhihu.topics')
         await redis.delAsync('zhihu.topics.pending')
-    } else if (includes(['posts', 'topics'], name)) {
+    } else if (includes(['post', 'topics'], name)) {
         await redis.delAsync(`tya.${name}`)
         await redis.delAsync(`tya.${name}.pending`)
     } else {
@@ -117,7 +129,7 @@ async function clear(name) {
 async function run(cmd) {
     switch (cmd) {
         case 'post':
-            await questions()
+            await crawl(cmd, 'inc')
             break
         case 'topics':
             await topics()
