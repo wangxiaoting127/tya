@@ -1,10 +1,10 @@
 // https://www.zhihu.com/topic/19668741/newest
 import { redis, es, config, mongo } from "./_base"
 import { split, pick } from "lodash"
-import { heartbeat } from "./zhihu/heartbeat"
+import { heartbeat } from "./tianya/heartbeat"
 
 heartbeat()
-const QUESTION = 'questions', TOPIC = 'topics'
+const POSTS = 'post', TOPIC = 'topics'
 
 function minutes(n) {
   return 1000 * 60 * n
@@ -16,6 +16,8 @@ function crawlAllCompleted(name) {
 
 async function dispatch(crawler) {
   let index = await crawler.getId()
+  console.log('==========')
+  console.log(index)
   if (index === 'nil') { crawlAllCompleted() }
   await crawler.crawl(index)
     .then(async function (ret) {
@@ -43,15 +45,15 @@ function usage() {
 function run(name) {
   if(!name) { return usage() }
   let [file, mod] = name.split('-')
-  let crawler = require(`./zhihu/${file}`)[mod || 'default']
+  let crawler = require(`./tianya/${file}`)[mod || 'default']
   console.log(name)
   dispatch(crawler) 
 }
-mongo.then(x=>{
-  global.mongo = x 
-  run(process.argv[2] || QUESTION)
-}).catch(x=>{
-  console.log(x)
-})
+// mongo.then(x=>{
+//   global.mongo = x 
+  run(process.argv[2] || POSTS)
+// }).catch(x=>{
+//   console.log(x)
+// })
 
 

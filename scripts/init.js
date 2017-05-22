@@ -17,7 +17,7 @@ function getIndecies(crawler, indecies) {
 }
 function saveList(crawler, index) {
     let urls = Array.isArray(index) ? flatten(index.map(x => x.urls)) : index.urls
-    return await redis.lpushAsync('tya.posts', `${Date.now()}`)
+    return  redis.lpushAsync('tya.posts', `${Date.now()}`)
 }
 function saveStatus(site, next) {
     return redis.hsetAsync("tya.postsStatus"
@@ -45,7 +45,7 @@ function isNext(index) {
 function crawlCompleted(site) {
     console.log(site, 'crawl completed')
 }
-async function crawl(site, increment = false) {
+ async function crawl(site, increment = false) {
     let crawler = require("../crawlers/" + site).default
     let init = await getIndex(crawler)
     console.log(init)
@@ -58,7 +58,7 @@ async function crawl(site, increment = false) {
             }
             let status = await saveStatus(site, index)
             let posts = await saveList(crawler, index)
-            candidate = index
+            candidate = indexs
             setImmediate(_crawl, crawler, index)
         } catch (e) {
             console.log('<<<< error >>>>')
@@ -70,7 +70,8 @@ async function crawl(site, increment = false) {
 }
 
 async function questions() {
-    crawl(post, inc)
+   
+     crawl(process.argv[2] || 'post', process.argv[3] == "inc")
     //   let qi = config.MAX_QUESTION_ID
     //   do {
     //     await redis.lpushAsync('zhihu.questions', `${qi}_${Date.now()}`)
@@ -101,13 +102,13 @@ async function index() {
 async function clear(name) {
     console.log(`clear zhihu ${name}`)
     if (name == 'all') {
-        await redis.delAsync('zhihu.questions')
-        await redis.delAsync('zhihu.questions.pending')
+        await redis.delAsync('tya.posts')
+        await redis.delAsync('tya.posts.pending')
         await redis.delAsync('zhihu.topics')
         await redis.delAsync('zhihu.topics.pending')
-    } else if (includes(['questions', 'topics'], name)) {
-        await redis.delAsync(`zhihu.${name}`)
-        await redis.delAsync(`zhihu.${name}.pending`)
+    } else if (includes(['posts', 'topics'], name)) {
+        await redis.delAsync(`tya.${name}`)
+        await redis.delAsync(`tya.${name}.pending`)
     } else {
         console.log("unknow keys: " + name)
     }
@@ -115,7 +116,7 @@ async function clear(name) {
 
 async function run(cmd) {
     switch (cmd) {
-        case 'questions':
+        case 'post':
             await questions()
             break
         case 'topics':

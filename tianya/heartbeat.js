@@ -19,7 +19,7 @@ export function heartbeat(isMaster) {
   console.log('crawler init:', crawlerKey)
 
   function _bh() {
-    redis.hsetAsync("zhihu.clients"
+    redis.hsetAsync("tianya.clients"
                    , crawlerKey
                    , `${os.hostname()}_${Date.now()}`)
     .then(function() {

@@ -10,14 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const _base_1 = require("./_base");
 const lodash_1 = require("lodash");
-const post_1 = require("./tianya/post");
 let http = require('http');
-let b = post_1.default.a();
-const initStatus = {
-    'post': { next: b.urls.map(x => { return { url: x }; })
-    },
-    'plate': { next: { default: { page: 1 }, url: 'http://focus.tianya.cn/thread/index.shtml' } },
-};
 let util = require('util');
 function log(x) {
     console.log(util.inspect(x, { showHidden: true, depth: null }));
@@ -49,8 +42,13 @@ function bulk(bulkBody) {
         return false;
     });
 }
+function getIndex(crawler) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return crawler.queue(['http://bbs.tianya.cn/']);
+    });
+}
 function getIndecies(crawler, indecies) {
-    let urls = indecies.next;
+    let urls = Array.isArray(indecies) ? lodash_1.flatten(indecies.map(x => x.next)) : indecies.next;
     return crawler.queue(urls || []);
 }
 function getPosts(crawler, index) {
@@ -58,10 +56,16 @@ function getPosts(crawler, index) {
     return crawler.queue(urls);
 }
 function saveStatus(site, next) {
-    return _base_1.redis.hsetAsync("owl.postsStatus", site, JSON.stringify(next));
+    return _base_1.redis.hsetAsync("tya.postsStatus", site, JSON.stringify(next));
 }
-function loadStatus(site, increment) {
+function loadStatus(site, increment, y) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log('+++++=======+++++++');
+        let initStatus = {
+            'post': { next: y[0].map(x => { return { default: { page: 1 }, url: x }; }) },
+            'plate': { next: { default: { page: 1 }, url: 'http://focus.tianya.cn/thread/index.shtml' } }
+        };
+        console.log(initStatus);
         let status = yield _base_1.redis.hgetAsync("tya.postsStatus", site);
         return status && !increment ? JSON.parse(status) : initStatus[site];
     });
@@ -90,9 +94,10 @@ function crawlCompleted(site) {
 }
 function crawl(site, increment = false) {
     return __awaiter(this, void 0, void 0, function* () {
-        let candidate = yield loadStatus(site, increment);
         let crawler = require("./crawlers/" + site).default;
-        let inits;
+        let init = yield getIndex(crawler);
+        console.log(init);
+        let candidate = yield loadStatus(site, increment, init);
         let _crawl = function (crawler, candidate) {
             return __awaiter(this, void 0, void 0, function* () {
                 try {

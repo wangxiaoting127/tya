@@ -1,7 +1,7 @@
 import { redis, es, config, bulk } from "../_base"
 import { updateId, log, expandIds } from "./utils"
 import { assign, pick } from "lodash"
-import crawl from "../crawlers/question"
+import crawl from "../crawlers/post"
 
 export default {
 
@@ -36,7 +36,7 @@ export default {
         // })
     })
     console.log(bulkBody)
-    return bulk(bulkBody)
+    // return bulk(bulkBody)
   }
 
   , crawl(index) {

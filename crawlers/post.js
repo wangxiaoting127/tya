@@ -43,7 +43,7 @@ epona.on("bbs.tianya.cn/post-", {
   .then(function (ret) {
     if (ret.published_at !== null) {
       let time = ret.published_at.match(/\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}/g).toString();
-      ret.published_at = moment(time).add(8, 'hour').toDate()
+      ret.published_at = moment(time).toDate()
     }
     console.log(ret)
     return ret
