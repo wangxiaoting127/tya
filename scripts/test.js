@@ -5,32 +5,29 @@ redis.on("error", function (err) {
     console.log("Error " + err);
 })
 // doc https://www.npmjs.com/package/redis
+
+
+ const initStatus = {
+        'post': { next: {url:'index'}},
+        'plate': { next: { default: { page: 1 }, url: 'http://focus.tianya.cn/thread/index.shtml' } }
+    }
 function usage() {
 
 }
 
-async function getIndex() {
-  let ret =await Epona.get("http://bbs.tianya.cn/", {
-    urls: '.nav_child_box a *::itemid'
-  }, { concurrent: 50 })
-//   ret.urls = compact(ret.urls)
-  ret.urls = ret.urls.map(x => { 
-      x.match(/(\/list)(.*)/g);
-      return 'http://bbs.tianya.cn/list-' + x + '-1.shtml' })
-  console.log(ret.urls)
-  return ret
+async function getIndex(crawler) {
+    return crawler.queue(['http://bbs.tianya.cn/'])
+    
 }
 function getIndecies(crawler, indecies) {
     let urls = Array.isArray(indecies) ? flatten(indecies.map(x => x.next)) : indecies.next
     return crawler.queue(urls || [])
 }
 function saveList(crawler, index) {
-
-    
-    
+   
+    console.log(index)
+     console.log('22222222222')
     let urls = Array.isArray(index) ? flatten(index.map(x => x.urls)) : index.urls
-    console.log(urls)
-    console.log('22222222222')
     urls.map(x => { return redis.lpushAsync('tya.posts', `${x.url}_${Date.now()}`) })
 }
 function saveStatus(site, next) {
@@ -39,11 +36,10 @@ function saveStatus(site, next) {
         , JSON.stringify(next))
 }
 async function loadStatus(site, increment, y) {
-    let initStatus = {
-        'post': { next: y.urls.map(x => { return { default: { page: 1 }, url: x } }) },
-        'plate': { next: { default: { page: 1 }, url: 'http://focus.tianya.cn/thread/index.shtml' } }
-    }
-    // console.log(initStatus)
+    // let initStatus = {
+    //     'post': { next: {url:'index'}},
+    //     'plate': { next: { default: { page: 1 }, url: 'http://focus.tianya.cn/thread/index.shtml' } }
+    // }
     let status = await redis.hgetAsync("tya.postsStatus", site)
     return status && !increment ? JSON.parse(status) : initStatus[site]
 }
@@ -62,10 +58,10 @@ function crawlCompleted(site) {
 }
 async function crawl(site, increment = false) {
     let crawler = require("../crawlers/" + site).default
-    let init =await getIndex()
-console.log(init)
+    // let init = await getIndex(crawler)
+
     let candidate = await loadStatus(site, increment, init)
-    async function _crawl(crawler, candidate) {
+    async function  _crawl(crawler, candidate) {
         try {
             let index = await getIndecies(crawler, candidate)
             console.log(index)
@@ -75,7 +71,7 @@ console.log(init)
             let status = await saveStatus(site, index)
             let posts = await saveList(crawler, index)
             candidate = index
-            await _crawl(crawler, index)
+            await _crawl(crawler, index) 
 
         } catch (e) {
             console.log('<<<< error >>>>')
@@ -83,7 +79,7 @@ console.log(init)
             // setImmediate(_crawl, crawler, candidate)
         }
     }
-
+    
     await _crawl(crawler, candidate)
 }
 
