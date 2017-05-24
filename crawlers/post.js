@@ -5,51 +5,25 @@ import { replace, compact } from "lodash"
 const moment = require('moment')
 moment.locale('zh-cn')
 
-let epona = Epona.new({ concurrent: 10 })
-// async function getIndex() {
-//   let ret =await Epona.get("http://bbs.tianya.cn/", {
-//     urls: '.nav_child_box a *::itemid'
-//   }, { concurrent: 50 })
-//   ret.urls = compact(ret.urls)
-//   ret.urls = ret.urls.map(x => { return 'http://bbs.tianya.cn/list-' + x + '-1.shtml' })
-//   console.log(ret)
-//   return ret
-// }
+let epona = Epona.new({ concurrent: 50 })
 
-// epona.on("http://bbs.tianya.cn/", {
-//   urls: '.nav_child_box a *::itemid'
-// })
-//   .then(function (ret) {
-//     // let ret = ret.urls.map(function (x) {
-//     //   let s = x.match(/-(.*)-/g);
-//     //   let t = s.toString().replace(/-/g,'')
-//     //   return t='http://bbs.tianya.cn/list.jsp?item='+t+'&order=1'
-//     // })
-//     ret.urls = compact(ret.urls)
-//     ret.urls=ret.urls.map(x=>{return 'http://bbs.tianya.cn/list-'+x+'-1.shtml'})
-//     console.log(ret)
-//     return ret
-//   })
 epona.on("bbs.tianya.cn/list", {
   urls: '.td-title a *::href ',
   nextid: '.short-pages-2 a:nth-last-of-type(1)::href',
 })
   .then(function (ret) {
-    // console.log(ret)
-    
-    ret.urls = ret.urls.map(x=>x.match(/(\/post)(.*)/g))
-    ret.urls = compact(ret.urls)
-    ret.nextid = ret.nextid.match(/(\/list)(.*)/g)
-    ret.nextid = compact(ret.nextid)
-    console.log('lllllllllllllllllll')
-    console.log(ret.urls)
+    let a=ret.nextid.match(/(\/list)(.*)/g)
+    if(a!=null){
     return {
-      urls: ret.urls.map(x => { return { url: "http://bbs.tianya.cn" + x, default: { id: x } } })
-      , next: {
+       urls: ret.urls = ret.urls.map(x => {
+        let a = x.match(/(\/post)(.*)/g);
+            return 'http://bbs.tianya.cn' + a  
+    }), next: {
         default: { page: 1 },
-        url: `http://bbs.tianya.cn` + ret.nextid
+        url: 
+        `http://bbs.tianya.cn` + ret.nextid
       }
-    }
+    }}
   })
 epona.on("bbs.tianya.cn/post-", {
   title: ['.s_title', '.q-title::text()'],
@@ -69,3 +43,18 @@ epona.on("bbs.tianya.cn/post-", {
   })
   // exports.getIndex()
 export default epona 
+
+// epona.on("http://bbs.tianya.cn/", {
+//   urls: '.nav_child_box a *::itemid'
+// })
+//   .then(function (ret) {
+//     // let ret = ret.urls.map(function (x) {
+//     //   let s = x.match(/-(.*)-/g);
+//     //   let t = s.toString().replace(/-/g,'')
+//     //   return t='http://bbs.tianya.cn/list.jsp?item='+t+'&order=1'
+//     // })
+//     ret.urls = compact(ret.urls)
+//     ret.urls=ret.urls.map(x=>{return 'http://bbs.tianya.cn/list-'+x+'-1.shtml'})
+//     console.log(ret)
+//     return ret
+//   })
