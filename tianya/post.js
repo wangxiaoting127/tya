@@ -20,26 +20,23 @@ export default {
     return redis.lpushAsync('tya.posts', updateId(index))
   }
 
-  , save(questions) {
+  , save(posts) {
     // save to elasticsearch
     // https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/api-reference.html
     let bulkBody = []
-    questions.map(x => {
-        if(!x || !x.title) { return }
-        bulkBody.push({ index: { _index: 'tya_posts', type: 'tya_posts', _id: x._id } })
-        assign(x, x.data)
-        bulkBody.push(pick(x,  ["title", "host", "published_at", "clicks_num", "replays_num", "url", "content"]))
-        // TODO: save answers
-        // x.answers.map(a => {
-        //   bulkBody.push({ index: { _index: 'zhihu_answers', _type: 'zhihu_answers', _id: answer.answersId } })
-        //   bulkBody.push(pick(answer, ["name", "links", "content", "time", "voteUp", "voteDown"]))
-        // })
-    })
+    posts.map(post => {
+    if (!post || !post.title) { return }
+    let a = pick(post, ["title", "host", "published_at", "clicks_num", "replays_num", "url", "content"])
+    // a.index_name='tech_news'; a.type_name=`tech_${site}_posts`; a.id= post.id 
+    bulkBody.push(a)
+
+  }
+   )
     console.log(bulkBody)
     // return bulk(bulkBody)
   }
 
   , crawl(index) {
-    return crawl(expandIds(index))
+    return crawl.queue(expandIds(index))
   }
 }

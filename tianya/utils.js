@@ -5,7 +5,7 @@ let util = require('util')
 
 export function updateId(i) {
   let s = split(i, '_', 1)
-  return `${Number(s)}_${Date.now()}`
+  return `${s}_${Date.now()}`
 }
 
 export function log(x){
@@ -14,6 +14,5 @@ export function log(x){
 
 export function expandIds(index) {
   let s = split(index, '_', 1)
-  let ind = Number(s)
-  return expand(`${ind}..${ind + config.ID_PER - 1}`)
+  return s
 }
