@@ -4,7 +4,7 @@ import { split, pick } from "lodash"
 import { heartbeat } from "./tianya/heartbeat"
 
 heartbeat()
-const POSTS = 'post', TOPIC = 'topics'
+const POSTS = 'post', PLATES = 'plate'
 
 function minutes(n) {
   return 1000 * 60 * n
