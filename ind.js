@@ -1,4 +1,4 @@
-// https://www.zhihu.com/topic/19668741/newest
+// https://www.tya.com/topic/19668741/newest
 import { redis, es, config, mongo } from "./_base"
 import { split, pick } from "lodash"
 import { heartbeat } from "./tianya/heartbeat"

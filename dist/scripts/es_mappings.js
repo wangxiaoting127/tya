@@ -11,13 +11,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const _base_1 = require("../_base");
 function indexQuestions() {
     return __awaiter(this, void 0, void 0, function* () {
-        const indexName = "zhihu_questions";
+        const indexName = "tya_questions";
         let exists = yield _base_1.es.indices.exists({ index: indexName });
         if (exists) {
-            let mapping = yield _base_1.es.indices.putMapping({ index: "zhihu_questions",
-                type: "zhihu_questions",
+            let mapping = yield _base_1.es.indices.putMapping({ index: "tya_questions",
+                type: "tya_questions",
                 body: {
-                    zhihu_questions: {
+                    tya_questions: {
                         properties: { questionId: { type: "string" },
                             title: {
                                 type: "string",

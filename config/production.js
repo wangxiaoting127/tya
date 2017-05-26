@@ -12,8 +12,8 @@ export const redisOpts = {
 }
 
 export const esOpts = {
-    hosts: ["http://zhihu:zhihu@123456@59.110.52.213/zhihu "]
+    hosts: ["http://tya:tya@123456@59.110.52.213/tya "]
   , requestTimeout: 300000
   , log: 'error'
 }
-export const mongoUrl = "mongodb://zhihu:joke123098@101.201.37.28:3718/zhihu"
+export const mongoUrl = "mongodb://tya:joke123098@101.201.37.28:3718/tya"

@@ -20,7 +20,7 @@ function heartbeat(isMaster) {
     }
     console.log('crawler init:', crawlerKey);
     function _bh() {
-        _base_1.redis.hsetAsync("zhihu.clients", crawlerKey, `${os.hostname()}_${Date.now()}`)
+        _base_1.redis.hsetAsync("tya.clients", crawlerKey, `${os.hostname()}_${Date.now()}`)
             .then(function () {
             console.log(`[${new Date}] heartbeat:`, crawlerKey);
             setTimeout(_bh, _base_1.config.beattime);

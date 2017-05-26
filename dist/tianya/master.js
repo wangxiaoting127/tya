@@ -13,7 +13,7 @@ const heartbeat_1 = require("./heartbeat");
 const utils_1 = require("./utils");
 const lodash_1 = require("lodash");
 let lp;
-_base_1.redis.lrangeAsync('zhihu.questions.pending', 0, -1)
+_base_1.redis.lrangeAsync('tya.questions.pending', 0, -1)
     .then(function (ret) {
     lp = ret;
     setTimeout(clearList, _base_1.config.cleartime);
@@ -23,13 +23,13 @@ _base_1.redis.lrangeAsync('zhihu.questions.pending', 0, -1)
 heartbeat_1.heartbeat(true);
 function clearList() {
     return __awaiter(this, void 0, void 0, function* () {
-        let nlp = yield _base_1.redis.lrangeAsync('zhihu.questions.pending', 0, -1);
+        let nlp = yield _base_1.redis.lrangeAsync('tya.questions.pending', 0, -1);
         for (let l of nlp) {
             try {
                 if (lodash_1.includes(lp, l)) {
                     yield _base_1.redis.multi()
-                        .lpush('zhihu.questions', utils_1.updateQuestionId(l))
-                        .lrem('zhihu.questions.pending', 0, l)
+                        .lpush('tya.questions', utils_1.updateQuestionId(l))
+                        .lrem('tya.questions.pending', 0, l)
                         .execAsync();
                     console.log(`clear & requeue expired item ${l}`);
                 }
@@ -38,7 +38,7 @@ function clearList() {
                 console.log(e);
             }
         }
-        lp = yield _base_1.redis.lrangeAsync('zhihu.questions.pending', 0, -1);
+        lp = yield _base_1.redis.lrangeAsync('tya.questions.pending', 0, -1);
     });
 }
 function clearNode() {

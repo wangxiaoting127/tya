@@ -7,9 +7,9 @@ export const beattime = 1000 * 30
 export const cleartime = 1000 * 60 * 3
 export const redisOpts = { }
 export const esOpts = {
-    hosts: ["http://zhihu:zhihu@123456@59.110.52.213/zhihu"]
+    hosts: ["http://tya:tya@123456@59.110.52.213/tya"]
   , requestTimeout: 300000
   , log: 'error'
 }
 
-export const mongoUrl = "mongodb://zhihu:joke123098@101.201.37.28:3718/zhihu-dev"
+export const mongoUrl = "mongodb://tya:joke123098@101.201.37.28:3718/tya-dev"

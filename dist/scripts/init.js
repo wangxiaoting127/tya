@@ -88,9 +88,9 @@ function topics() {
     return __awaiter(this, void 0, void 0, function* () {
         let ti = _base_1.config.MIN_TOPIC_ID;
         do {
-            yield _base_1.redis.lpushAsync('zhihu.topics', `${ti}_${Date.now()}`);
+            yield _base_1.redis.lpushAsync('tya.topics', `${ti}_${Date.now()}`);
         } while ((ti += _base_1.config.ID_PER) < _base_1.config.MAX_TOPIC_ID);
-        console.log('zhihu topics id added');
+        console.log('tya topics id added');
     });
 }
 function index() {
@@ -106,12 +106,12 @@ function index() {
 }
 function clear(name) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log(`clear zhihu ${name}`);
+        console.log(`clear tya ${name}`);
         if (name == 'all') {
             yield _base_1.redis.delAsync('tya.posts');
             yield _base_1.redis.delAsync('tya.posts.pending');
-            yield _base_1.redis.delAsync('zhihu.topics');
-            yield _base_1.redis.delAsync('zhihu.topics.pending');
+            yield _base_1.redis.delAsync('tya.topics');
+            yield _base_1.redis.delAsync('tya.topics.pending');
         }
         else if (lodash_1.includes(['posts', 'topics'], name)) {
             yield _base_1.redis.delAsync(`tya.${name}`);

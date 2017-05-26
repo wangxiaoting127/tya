@@ -19,24 +19,24 @@ function questions() {
     return __awaiter(this, void 0, void 0, function* () {
         let qi = _base_1.config.MAX_QUESTION_ID;
         do {
-            yield _base_1.redis.lpushAsync('zhihu.questions', `${qi}_${Date.now()}`);
+            yield _base_1.redis.lpushAsync('tya.questions', `${qi}_${Date.now()}`);
         } while ((qi -= _base_1.config.ID_PER) > _base_1.config.MIN_QUESTION_ID);
-        console.log('zhihu questions id added');
+        console.log('tya questions id added');
     });
 }
 function topics() {
     return __awaiter(this, void 0, void 0, function* () {
-        let ti = yield _base_1.redis.llenAsync('zhihu.topics.pending');
+        let ti = yield _base_1.redis.llenAsync('tya.topics.pending');
         while (ti - 5 > 0) {
-            let index = yield _base_1.redis.rpoplpushAsync('zhihu.topics.pending', 'zhihu.topics.pending');
+            let index = yield _base_1.redis.rpoplpushAsync('tya.topics.pending', 'tya.topics.pending');
             let [id, time] = index.split('_');
             if ((new Date).getTime() - parseInt(time) > 10 * 60 * 1000) {
                 console.log('requeued:', id);
-                yield _base_1.redis.lremAsync('zhihu.topics.pending', 0, index);
-                yield _base_1.redis.lpushAsync('zhihu.topics', utils_1.updateId(index));
+                yield _base_1.redis.lremAsync('tya.topics.pending', 0, index);
+                yield _base_1.redis.lpushAsync('tya.topics', utils_1.updateId(index));
             }
         }
-        console.log('zhihu topics id requeued');
+        console.log('tya topics id requeued');
     });
 }
 function run(cmd) {

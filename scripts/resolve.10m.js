@@ -13,24 +13,24 @@ function usage() {
 async function questions() {
   let qi = config.MAX_QUESTION_ID
   do {
-    await redis.lpushAsync('zhihu.questions', `${qi}_${Date.now()}`)
+    await redis.lpushAsync('tya.questions', `${qi}_${Date.now()}`)
   } while ((qi -= config.ID_PER) > config.MIN_QUESTION_ID)
-  console.log('zhihu questions id added')
+  console.log('tya questions id added')
 }
 
 async function topics() {
   // let ti = config.MIN_TOPIC_ID
-  let ti = await redis.llenAsync('zhihu.topics.pending')
+  let ti = await redis.llenAsync('tya.topics.pending')
   while(ti - 5 > 0) {
-    let index = await redis.rpoplpushAsync('zhihu.topics.pending', 'zhihu.topics.pending')
+    let index = await redis.rpoplpushAsync('tya.topics.pending', 'tya.topics.pending')
     let [id, time] = index.split('_')
     if((new Date).getTime() - parseInt(time) > 10 * 60 * 1000) {
       console.log('requeued:', id)
-      await redis.lremAsync('zhihu.topics.pending', 0, index)
-      await redis.lpushAsync('zhihu.topics', updateId(index))
+      await redis.lremAsync('tya.topics.pending', 0, index)
+      await redis.lpushAsync('tya.topics', updateId(index))
     }
   }
-  console.log('zhihu topics id requeued')
+  console.log('tya topics id requeued')
 }
 
 async function run(cmd) {

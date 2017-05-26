@@ -13,9 +13,9 @@ exports.redisOpts = {
     password: 'Abc123456'
 };
 exports.esOpts = {
-    hosts: ["http://zhihu:zhihu@123456@59.110.52.213/zhihu "],
+    hosts: ["http://tya:tya@123456@59.110.52.213/tya "],
     requestTimeout: 300000,
     log: 'error'
 };
-exports.mongoUrl = "mongodb://zhihu:joke123098@101.201.37.28:3718/zhihu";
+exports.mongoUrl = "mongodb://tya:joke123098@101.201.37.28:3718/tya";
 //# sourceMappingURL=production.js.map
