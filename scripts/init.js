@@ -22,18 +22,11 @@ async function getIndex() {
 }
 async function getIndecies(crawler, indecies) {
     let urls = Array.isArray(indecies) ? flatten(indecies.filter(x => x).map(x => x.next)) : indecies.next
-    // console.log(urls)
-    // console.log('11111111111')
     return crawler.queue(urls || [])
 }
 async function saveList(crawler, index) {
     let list = Array.isArray(index) ? flatten(index.filter(x => x).map(x => x.urls)) : index.urls
-    console.log(list)
-    return list.map(async (x) => { return redis.lpushAsync('tya.posts', `${x}_${Date.now()}`) })
-    //  for(let x in list){
-    //     redis.lpushAsync('tya.posts', `${list[x]}_${Date.now()}`)
-    // } 
-    
+    return list.map(async function (x) { return redis.lpushAsync('tya.posts', `${x}_${Date.now()}`) })
 }
 async function saveStatus(site, next) {
     return redis.hsetAsync("tya.postsStatus"
@@ -42,7 +35,7 @@ async function saveStatus(site, next) {
 }
 async function loadStatus(site, increment, y) {
     let initStatus = {
-        'post': { next: y.urls.map(x => { return { default: { page: 1 }, url: x } }) },
+        'post': { next: y.urls.map(x => { return { url: x } }) },
         'plate': { next: { default: { page: 1 }, url: 'http://focus.tianya.cn/thread/index.shtml' } }
     }
     // console.log(initStatus)
@@ -50,6 +43,15 @@ async function loadStatus(site, increment, y) {
     return status && !increment ? JSON.parse(status) : initStatus[site]
 }
 
+async function lastUrl(index){
+ let nextUrls = Array.isArray(index) ? flatten(index.filter(x => x).map(x => x.next)) : index.next
+    let last = nextUrls.map(x => {
+        let time = Number(x.url.match(/\d{13}/g))
+        if (time <= 1495577600000) { return x = null } else {
+             return x }
+    })
+    return index
+}
 function isntNext(index) {
     if (Array.isArray(index)) {
         return index.filter(x => x).length == 0
@@ -62,38 +64,40 @@ function crawlCompleted(site) {
     console.log(site, 'list  added')
 }
 async function crawl(site, increment = false) {
-    let crawler =require("../crawlers/" + site).default
+    let crawler = require("../crawlers/" + site).default
     let init = await getIndex()
     let candidate = await loadStatus(site, increment, init)
     async function _crawl(crawler, candidate) {
         try {
-            let index = await getIndecies(crawler, candidate)
+            let findex = await getIndecies(crawler, candidate)
+            let index=await lastUrl(findex)
             // console.log(index)
             if (isntNext(index)) {
                 return crawlCompleted(site)
             }
+            console.log(index)
+            console.log('aaaaaaaaaaaaaa')
             let status = await saveStatus(site, index)
-            let posts =await saveList(crawler, index)
+            let posts = await saveList(crawler, index)
             candidate = index
-            setImmediate( _crawl, crawler, index)
-            // await _crawl(crawler, index) 
+            setImmediate(_crawl, crawler, index)
         } catch (e) {
             console.log('<<<< error >>>>')
-            console.log(candidate, e)
+            console.log(e)
             // setImmediate(await _crawl(crawler, index))
             // setImmediate(_crawl, crawler, candidate)
         }
     }
-   await  _crawl(crawler, candidate)
+    await _crawl(crawler, candidate)
 }
 
 async function plates() {
     let init = await getIndex()
-    console.log(init)
     let list = Array.isArray(init) ? flatten(init.filter(x => x).map(x => x.urls)) : init.urls
-    list.map(x=> redis.lpushAsync('tya.plates', `${x}_${Date.now()}`))
+    console.log(list)
+    return Promise.all(list.map(x => { return redis.lpushAsync('tya.plates', `${x}_${Date.now()}`) }))
 
-    console.log('tya plates id added')
+    // console.log('tya plates id added')
 }
 
 async function init() {
@@ -148,7 +152,7 @@ async function run(cmd, increment = false) {
     }
 
     console.log('done!')
-    process.exit(0)
+    // process.exit(0)
 }
 
 run(process.argv[2])

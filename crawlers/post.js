@@ -18,7 +18,6 @@ epona.on("bbs.tianya.cn/list", {
         let a = x.match(/(\/post)(.*)/g);
             return 'http://bbs.tianya.cn' + a  
     }), next: {
-        default: { page: 1 },
         url: 
         `http://bbs.tianya.cn` + ret.nextid
       }
