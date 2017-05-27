@@ -25,7 +25,9 @@ async function getIndecies(crawler, indecies) {
     return crawler.queue(urls || [])
 }
 async function saveList(crawler, index) {
-    let list = Array.isArray(index) ? flatten(index.filter(x => x).map(x => x.urls)) : index.urls
+    // console.log(index)
+    let list = flatten(index.map(x => x.urls))
+    console.log(list)
     return list.map(async function (x) { return redis.lpushAsync('tya.posts', `${x}_${Date.now()}`) })
 }
 async function saveStatus(site, next) {
@@ -33,25 +35,29 @@ async function saveStatus(site, next) {
         , site
         , JSON.stringify(next))
 }
-async function loadStatus(site, increment, y) {
+async function loadStatus(site, increment, init) {
+    let channel = compact(init.urls)
     let initStatus = {
-        'post': { next: y.urls.map(x => { return { url: x } }) },
+        'post': { next: channel.map(x => { return { url: x } }) },
         'plate': { next: { default: { page: 1 }, url: 'http://focus.tianya.cn/thread/index.shtml' } }
     }
-    // console.log(initStatus)
     let status = await redis.hgetAsync("tya.postsStatus", site)
     return status && !increment ? JSON.parse(status) : initStatus[site]
 }
 
-async function lastUrl(index){
- let nextUrls = Array.isArray(index) ? flatten(index.filter(x => x).map(x => x.next)) : index.next
-    let last = nextUrls.map(x => {
-        let time = Number(x.url.match(/\d{13}/g))
-        if (time <= 1495577600000) { return x = null } else {
-             return x }
+async function lastUrl(index) {
+    //爬取时间到20160101
+    index = index.filter(x => x).map(x => {
+        let time = x.next.url.match(/\d{13}/g)
+        if (time > 1451577600000) {
+            return x
+        } else {
+            return x.next.url = ''
+        }
     })
     return index
 }
+
 function isntNext(index) {
     if (Array.isArray(index)) {
         return index.filter(x => x).length == 0
@@ -63,20 +69,17 @@ function isntNext(index) {
 function crawlCompleted(site) {
     console.log(site, 'list  added')
 }
-async function crawl(site, increment = false) {
+async function posts(site, increment = false) {
     let crawler = require("../crawlers/" + site).default
     let init = await getIndex()
     let candidate = await loadStatus(site, increment, init)
     async function _crawl(crawler, candidate) {
         try {
             let findex = await getIndecies(crawler, candidate)
-            let index=await lastUrl(findex)
-            // console.log(index)
+            let index = await lastUrl(findex)
             if (isntNext(index)) {
                 return crawlCompleted(site)
             }
-            console.log(index)
-            console.log('aaaaaaaaaaaaaa')
             let status = await saveStatus(site, index)
             let posts = await saveList(crawler, index)
             candidate = index
@@ -93,8 +96,7 @@ async function crawl(site, increment = false) {
 
 async function plates() {
     let init = await getIndex()
-    let list = Array.isArray(init) ? flatten(init.filter(x => x).map(x => x.urls)) : init.urls
-    console.log(list)
+    let list = compact(init.urls)
     return Promise.all(list.map(x => { return redis.lpushAsync('tya.plates', `${x}_${Date.now()}`) }))
 
     // console.log('tya plates id added')
@@ -130,7 +132,7 @@ async function clear(name) {
 async function run(cmd, increment = false) {
     switch (cmd) {
         case 'post':
-            await crawl(cmd, process.argv[3] == "inc")
+            await posts(cmd, process.argv[3] == "inc")
             break
         case 'plate':
             await plates()

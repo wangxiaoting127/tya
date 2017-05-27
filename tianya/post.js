@@ -1,5 +1,5 @@
 import { redis, es, config, bulk } from "../_base"
-import { updateId, log, expandIds } from "./utils"
+import { updateId, log, postUrl } from "./utils"
 import { assign, pick } from "lodash"
 import crawl from "../crawlers/post"
 
@@ -37,6 +37,6 @@ export default {
   }
 
   , crawl(index) {
-    return crawl.queue(expandIds(index))
+    return crawl.queue(postUrl(index))
   }
 }

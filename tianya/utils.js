@@ -12,7 +12,7 @@ export function log(x){
   console.log(util.inspect(x, { showHidden: true, depth: null }))
 }
 
-export function expandIds(index) {
+export function postUrl(index) {
   let s = split(index, '_', 1)
   return s
 }

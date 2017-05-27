@@ -21,13 +21,13 @@ epona.on('story/{id}', {
         filters: 'filter("question")'
     },
 })
-    .host('http://daily.zhihu.com')
+    .host('http://daily.tya.com')
     .then(function (ret, res, id) {
     console.log(res.extract('.headline-title'));
     return ret;
 });
 let run = () => __awaiter(this, void 0, void 0, function* () {
-    let a = yield epona.queue([{ url: 'http://daily.zhihu.com/story/9266807' }]);
+    let a = yield epona.queue([{ url: 'http://daily.tya.com/story/9266807' }]);
 });
 run();
-//# sourceMappingURL=zhihudaily.js.map
+//# sourceMappingURL=tyadaily.js.map
