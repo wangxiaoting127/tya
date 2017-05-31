@@ -12,4 +12,4 @@ export const esOpts = {
   , log: 'error'
 }
 
-export const mongoUrl = "mongodb://tya:joke123098@101.201.37.28:3718/tya-dev"
+export const mongoUrl = "mongodb://localhost/tya-dev"

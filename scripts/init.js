@@ -24,12 +24,21 @@ async function getIndecies(crawler, indecies) {
     let urls = Array.isArray(indecies) ? flatten(indecies.filter(x => x).map(x => x.next)) : indecies.next
     return crawler.queue(urls || [])
 }
+
+//save posturl
 async function saveList(crawler, index) {
     // console.log(index)
     let list = flatten(index.map(x => x.urls))
-    console.log(list)
-    return list.map(async function (x) { return redis.lpushAsync('tya.posts', `${x}_${Date.now()}`) })
+    let allList = compact(list)
+    let urlList = allList.map(x => x.url)
+    console.log(urlList)
+
+    return urlList.map(async function (x) { 
+        if(x){
+        return redis.lpushAsync('tya.posts', `${x}_${Date.now()}`) }})
 }
+
+
 async function saveStatus(site, next) {
     return redis.hsetAsync("tya.postsStatus"
         , site
@@ -97,18 +106,20 @@ async function posts(site, increment = false) {
 async function plates() {
     let init = await getIndex()
     let list = compact(init.urls)
-    return Promise.all(list.map(x => { return redis.lpushAsync('tya.plates', `${x}_${Date.now()}`) }))
+    return Promise.all(list.map(x => { 
+        if(x){
+        return redis.lpushAsync('tya.plates', `${x}_${Date.now()}`) }}))
 
     // console.log('tya plates id added')
 }
 
-async function init() {
+async function index() {
     // craete mongo index
     mongo = await mongo
-    const Topic = mongo.collection('plates')
-    await Topic.createIndex({ _id: 1 }, { unique: true })
-    const topicFollows = mongo.collection('topic_follows')
-    await topicFollows.createIndex({ _id: 1 }, { unique: true })
+    const Plate = mongo.collection('plates')
+    await Plate.createIndex({ _id: 1 }, { unique: true })
+    const PlateFollows = mongo.collection('plates_follows')
+    await PlateFollows.createIndex({ _id: 1 }, { unique: true })
     console.log('created mongo indecies')
     // done
     await mongo.close()

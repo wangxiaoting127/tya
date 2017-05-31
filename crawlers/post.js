@@ -11,17 +11,18 @@ epona.on("bbs.tianya.cn/list", {
   nextid: '.short-pages-2 a:nth-last-of-type(1)::href',
 })
   .then(function (ret) {
-    let a=ret.nextid.match(/(\/list)(.*)/g)
-    if(a!=null){
-    return {
-       urls: ret.urls = ret.urls.map(x => {
-        let a = x.match(/(\/post)(.*)/g);
-            return 'http://bbs.tianya.cn' + a  
-    }), next: {
-        url: 
-        `http://bbs.tianya.cn` + ret.nextid
+    let a = ret.nextid.match(/(\/list)(.*)/g)
+    if (a != null) {
+      return {
+        urls: ret.urls = ret.urls.map(x => {
+          let a = x.match(/(\/post)(.*)/g);
+          return { url: 'http://bbs.tianya.cn' + a, defalut: { url: 'http://bbs.tianya.cn' + a } }
+        }), next: {
+          url:
+          `http://bbs.tianya.cn` + ret.nextid
+        }
       }
-    }}
+    }
   })
 epona.on("bbs.tianya.cn/post-", {
   title: ['.s_title', '.q-title::text()'],
@@ -39,8 +40,8 @@ epona.on("bbs.tianya.cn/post-", {
     console.log(ret)
     return ret
   })
-  // exports.getIndex()
-export default epona 
+// exports.getIndex()
+export default epona
 
 // epona.on("http://bbs.tianya.cn/", {
 //   urls: '.nav_child_box a *::itemid'

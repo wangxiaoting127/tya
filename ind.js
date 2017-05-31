@@ -18,8 +18,8 @@ async function dispatch(crawler) {
   let index = await crawler.getId()
   console.log('==========')
   console.log(index)
-  
-  if (index ==='nil') { crawlAllCompleted() }
+
+  if (index == null) { crawlAllCompleted() }
   await crawler.crawl(index)
     .then(async function (ret) {
       if (await crawler.save(ret)) {
@@ -47,14 +47,14 @@ function run(name) {
   if (!name) { return usage() }
   let [file, mod] = name.split('-')
   let crawler = require(`./tianya/${file}`)[mod || 'default']
-  console.log(name)
+  console.log(crawler)
   dispatch(crawler)
 }
-// mongo.then(x=>{
-//   global.mongo = x 
-run(process.argv[2] || POSTS)
-// }).catch(x=>{
-//   console.log(x)
-// })
+mongo.then(x => {
+  global.mongo = x
+  run(process.argv[2] || POSTS)
+}).catch(x => {
+  console.log(x)
+})
 
 

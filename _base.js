@@ -5,6 +5,8 @@ import * as fs from "fs"
 import { trim } from "lodash"
 export const env = fs.existsSync('./env') ? fs.readFileSync('./env', 'utf8') : 'dev'
 export let config = require(`./config/${trim(env)}.js`)
+import * as request from "request-promise"
+import { MongoClient } from "mongodb"
 Promise.promisifyAll(Redis.RedisClient.prototype)
 Promise.promisifyAll(Redis.Multi.prototype)
 
@@ -15,3 +17,33 @@ redis.on("error", function (err) {
 })
 
 export let es = new elasticsearch.Client(config.esOpts)
+
+export async function bulk(bulkBody) {
+  if (bulkBody.length == 0) { 
+    console.log('maybe error')
+    return false 
+  }
+  try {
+    let bulked = await request.post({
+        // uri: 'http://59.110.52.213/stq/api/v1/pa/zhihu/add'
+      // ,
+       body: JSON.stringify(bulkBody)
+      , headers: { "Content-Type" : "application/json" }
+    })
+    // let bulked = await es.bulk({ body: bulkBody })
+    bulked = JSON.parse(bulked)
+    if(bulked.success != "true") {
+      console.log(bulked)
+      return false
+    } else {
+      console.log(`bulked ${bulkBody.length} items`)
+      return true
+    }
+  } catch (e) {
+    console.log(`bulked error`)
+    console.log(e)
+    // TODO: retry
+  }
+  return false
+}
+export let mongo = MongoClient.connect(config.mongoUrl)

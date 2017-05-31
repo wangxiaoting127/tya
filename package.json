@@ -19,6 +19,7 @@
     "lodash": "^4.17.4",
     "mongodb": "^2.2.26",
     "redis": "^2.7.1",
+    "request-promise": "^4.2.1",
     "sugar": "^2.0.4",
     "turbolinks": "^5.0.0"
   },
