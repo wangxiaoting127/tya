@@ -33,12 +33,14 @@ async function saveList(crawler, index) {
     let urlList = allList.map(x => x.url)
     console.log(urlList)
 
-    return urlList.map(async function (x) { 
-        if(x){
-        return redis.lpushAsync('tya.posts', `${x}_${Date.now()}`) }})
+    return urlList.map(async function (x) {
+        if (x) {
+            return redis.lpushAsync('tya.posts', `${x}_${Date.now()}`)
+        }
+    })
 }
 
-
+//保存当前爬取文章列表和下一页的url
 async function saveStatus(site, next) {
     return redis.hsetAsync("tya.postsStatus"
         , site
@@ -67,6 +69,28 @@ async function lastUrl(index) {
     return index
 }
 
+async function saveDate(site, index) {
+    //?
+    let ntime = index[0].next.url.match(/\d{13}/g)
+    return redis.hsetAsync("tya.postsTime",
+        site
+        , JSON.stringify(ntime))
+}
+async function add(index, site) {
+    //每日爬取
+    let ntime = await redis.hgetAsync("tya.postsTime", site)
+    let newtime=ntime.toString() 
+    console.log(ntime)
+    index = index.filter(x => x).map(x => {
+        let time = x.next.url.match(/\d{13}/g)
+        if (time < newtime ) {
+            return x.next.url = ''
+        }
+    })
+    return index
+
+}
+
 function isntNext(index) {
     if (Array.isArray(index)) {
         return index.filter(x => x).length == 0
@@ -85,7 +109,9 @@ async function posts(site, increment = false) {
     async function _crawl(crawler, candidate) {
         try {
             let findex = await getIndecies(crawler, candidate)
-            let index = await lastUrl(findex)
+            // let index = await lastUrl(findex)
+            let index = await add(findex,site)
+            let time = await saveDate(site, index)
             if (isntNext(index)) {
                 return crawlCompleted(site)
             }
@@ -106,24 +132,26 @@ async function posts(site, increment = false) {
 async function plates() {
     let init = await getIndex()
     let list = compact(init.urls)
-    return Promise.all(list.map(x => { 
-        if(x){
-        return redis.lpushAsync('tya.plates', `${x}_${Date.now()}`) }}))
+    return Promise.all(list.map(x => {
+        if (x) {
+            return redis.lpushAsync('tya.plates', `${x}_${Date.now()}`)
+        }
+    }))
 
     // console.log('tya plates id added')
 }
 
-async function index() {
-    // craete mongo index
-    mongo = await mongo
-    const Plate = mongo.collection('plates')
-    await Plate.createIndex({ _id: 1 }, { unique: true })
-    const PlateFollows = mongo.collection('plates_follows')
-    await PlateFollows.createIndex({ _id: 1 }, { unique: true })
-    console.log('created mongo indecies')
-    // done
-    await mongo.close()
-}
+// async function index() {
+//     // craete mongo index
+//     mongo = await mongo
+//     const Plate = mongo.collection('plates')
+//     await Plate.createIndex({ "_id": 1 }, { "unique": true })
+//     // const PlateFollows = mongo.collection('plates_follows')
+//     // await PlateFollows.createIndex({ _id: 1 }, { unique: true })
+//     console.log('created mongo indecies')
+//     // done
+//     await mongo.close()
+// }
 
 async function clear(name) {
     console.log(`clear tya ${name}`)

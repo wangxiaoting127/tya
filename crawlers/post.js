@@ -8,9 +8,11 @@ let epona = Epona.new({ concurrent: 50 })
 
 epona.on("bbs.tianya.cn/list", {
   urls: '.td-title a *::href ',
+  update:'td[title]::title',
   nextid: '.short-pages-2 a:nth-last-of-type(1)::href',
 })
   .then(function (ret) {
+    // console.log(ret)
     let a = ret.nextid.match(/(\/list)(.*)/g)
     if (a != null) {
       return {
