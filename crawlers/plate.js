@@ -29,7 +29,9 @@ epona.on('bbs.tianya.cn/list-', {
   intro: '.block-intro::text()|trim'
 })
   .then(function (ret) {
+    ret.crawled_at=new Date()
     ret.url='http://bbs.tianya.cn'+ret.url
+    ret._id=ret.url.match(/-(.*)-/g).toString().replace(/-/g,'')
     console.log(ret)
     return ret
   })

@@ -27,12 +27,9 @@ async function getIndecies(crawler, indecies) {
 
 //save posturl
 async function saveList(crawler, index) {
-    // console.log(index)
     let list = flatten(index.map(x => x.urls))
     let allList = compact(list)
     let urlList = allList.map(x => x.url)
-    console.log(urlList)
-
     return urlList.map(async function (x) {
         if (x) {
             return redis.lpushAsync('tya.posts', `${x}_${Date.now()}`)
@@ -69,22 +66,18 @@ async function lastUrl(index) {
     return index
 }
 
-async function saveDate(site, index) {
-    //?
-    let ntime = index[0].next.url.match(/\d{13}/g)
-    return redis.hsetAsync("tya.postsTime",
-        site
-        , JSON.stringify(ntime))
-}
-async function add(index, site) {
+
+async function add(index) {
     //每日爬取
-    let ntime = await redis.hgetAsync("tya.postsTime", site)
-    let newtime=ntime.toString() 
-    console.log(ntime)
-    index = index.filter(x => x).map(x => {
-        let time = x.next.url.match(/\d{13}/g)
-        if (time < newtime ) {
-            return x.next.url = ''
+    let dd=new Date()
+    let time=dd.setDate(dd.getDate()-1)
+    index=index.filter(x=>x).map(x=>{
+        let nextTime=x.next.url.match(/\d{13}/g)
+        if(nextTime>time){
+            return x
+        }else{
+            console.log('=======postList ready========')
+            return x.next.url=''
         }
     })
     return index
@@ -100,7 +93,7 @@ function isntNext(index) {
 }
 
 function crawlCompleted(site) {
-    console.log(site, 'list  added')
+    console.log(site, 'list added')
 }
 async function posts(site, increment = false) {
     let crawler = require("../crawlers/" + site).default
@@ -110,8 +103,7 @@ async function posts(site, increment = false) {
         try {
             let findex = await getIndecies(crawler, candidate)
             // let index = await lastUrl(findex)
-            let index = await add(findex,site)
-            let time = await saveDate(site, index)
+            let index = await add(findex)
             if (isntNext(index)) {
                 return crawlCompleted(site)
             }

@@ -26,7 +26,7 @@ export default {
     let bulkBody = []
     posts.map(post => {
     if (!post || !post.title) { return }
-    let a = pick(post, ["title", "host", "published_at", "clicks_num", "replays_num", "url", "content"])
+    let a = pick(post, ["title", "host", "published_at", "clicks_num", "replays_num", "url", "id","content","crawled_at"])
     // a.index_name='tech_news'; a.type_name=`tech_${site}_posts`; a.id= post.id 
     bulkBody.push(a)
 

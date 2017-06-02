@@ -4,7 +4,7 @@ import { assign, pick, omit } from "lodash"
 import crawl from "../crawlers/plate"
 import { ObjectID } from "mongodb"
 let Plate = global.mongo.collection('plates')
-let PlateFollows = global.mongo.collection('plate_follows')
+let PlateFollows = global.mongo.collection('plates_follows')
 
 function beginningOfDay(date) {
   date = date || new Date
@@ -23,32 +23,56 @@ function yestoday() {
 }
 
 module.exports.mongo = {
-  getId() {
-    return redis.rpoplpushAsync('tya.plates', 'tya.plates.pending')
+  async getId() {
+      let plate = await Plate.findOneAndUpdate(
+          { }
+          // { updated_at: { $lte: yestoday() }, pending: false  }
+        , { $set:{ pending: true, updated_at: new Date } }
+        , { sort: { updated_at: 1 } }
+      )
+      // if(!topic) {
+      //   let folowsNum = await TopicFollows.find({
+
+      //   }).count()
+      //   let topicsNum = await Topic.find().count()
+      // }
+      return [plate.value.url]
   }
 
-  , crawlCompleted(index) {
-    return redis.multi()
-      .lpush('tya.plates.completed', updateId(index))
-      .lrem('tya.plates.pending', 0, index)
-      .execAsync()
+  , requeue() {
+    return true
   }
 
-  , requeue(index) {
-    return redis.lpushAsync('tya.plates', updateId(index))
+  , crawlCompleted(plate) {
+    return Plate.updateOne({_id:plate._id}, {$set: omit(plate, '_id')})
   }
 
-  , async save(plate) {
-    console.log(plate)
-    if (plate.length == 0) { return true }
-    let saved = Plate.updateOne({ url: plate.url }, { $set: { 'posts_num': plate.posts_num, 'replays_num': plate.replays_num } })
-    return saved.result.ok == 1
+  , crawl
 
+  , save(plate) {
+    // return topics
+    let saved = []
+    saved.push(Plate.updateOne({_id:plate._id}, {$set: omit(plate, ['_id', 'crawled_at'])}))
+    saved.push(PlateFollows.insertOne({
+        _id: (new ObjectID).str
+      , posts_num: plate.replays_num
+      , replays_num: plate.replays_num
+      , created_at: new Date,
+      
+    }))
+    return Promise.all(saved)
   }
+  // async save(plate) {
+  //   console.log(plate)
+  //   if (plate.length == 0) { return true }
+  //   let saved = Plate.updateOne({ url: plate.url }, { $set: { 'posts_num': plate.posts_num, 'replays_num': plate.replays_num } })
+  //   return saved.result.ok == 1
 
-  , crawl(index) {
-    return crawl.queue(postUrl(index))
-  }
+  // }
+
+  // , crawl(index) {
+  //   return crawl.queue(postUrl(index))
+  // }
 
 }
 
