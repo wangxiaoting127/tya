@@ -55,7 +55,7 @@ module.exports.mongo = {
     saved.push(Plate.updateOne({_id:plate._id}, {$set: omit(plate, ['_id', 'crawled_at'])}))
     saved.push(PlateFollows.insertOne({
         _id: (new ObjectID).str
-      , posts_num: plate.replays_num
+      , posts_num: plate.posts_num
       , replays_num: plate.replays_num
       , created_at: new Date,
       

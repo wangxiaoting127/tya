@@ -25,9 +25,8 @@ export async function bulk(bulkBody) {
   }
   try {
     let bulked = await request.post({
-        // uri: 'http://59.110.52.213/stq/api/v1/pa/zhihu/add'
-      // ,
-       body: JSON.stringify(bulkBody)
+        uri: 'http://59.110.52.213/stq/api/v1/pa/tianya/add'
+      , body: JSON.stringify(bulkBody)
       , headers: { "Content-Type" : "application/json" }
     })
     // let bulked = await es.bulk({ body: bulkBody })

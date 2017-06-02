@@ -102,8 +102,8 @@ async function posts(site, increment = false) {
     async function _crawl(crawler, candidate) {
         try {
             let findex = await getIndecies(crawler, candidate)
-            // let index = await lastUrl(findex)
-            let index = await add(findex)
+            let index = await lastUrl(findex)
+            // let index = await add(findex)
             if (isntNext(index)) {
                 return crawlCompleted(site)
             }
