@@ -17,6 +17,8 @@ function crawlAllCompleted(name) {
 
 async function dispatch(crawler) {
   let index = await crawler.getId()
+  console.log(index)
+  console.log('=====================')
   if (index == null||index  === 0) { crawlAllCompleted() }
   await crawler.crawl(index)
     .then(async function (ret) {

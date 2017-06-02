@@ -1,5 +1,5 @@
 import { redis, config, mongo } from "../_base"
-import { includes, split, pick, flatten, compact } from "lodash"
+import { includes, split, pick, flatten, compact,uniq } from "lodash"
 import * as Epona from "eponajs"
 redis.on("error", function (err) {
     console.log("Error " + err);
@@ -123,7 +123,7 @@ async function posts(site, increment = false) {
 
 async function plates() {
     let init = await getIndex()
-    let list = compact(init.urls)
+    let list = uniq(compact(init.urls))
     return Promise.all(list.map(x => {
         if (x) {
             return redis.lpushAsync('tya.plates', `${x}_${Date.now()}`)
